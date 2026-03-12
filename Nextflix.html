@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Netflix Clone</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+    body { background: #000; color: #fff; }
+
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+      z-index: 10;
+    }
+
+    .logo { color: #e50914; font-size: 32px; font-weight: 700; letter-spacing: 2px; }
+
+    .nav-links a {
+      color: #fff;
+      margin-left: 20px;
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .nav-links a:hover, .nav-links a.active { color: #e50914; }
+
+    main { padding-top: 80px; }
+
+    /* Hero */
+    .hero {
+      height: 80vh;
+      background: url('https://images.unsplash.com/photo-1524985069026-dd778a71c7b4?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+      display: flex;
+      align-items: center;
+      padding: 0 60px;
+      position: relative;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, #000 10%, transparent 60%);
+    }
+
+    .hero-content { max-width: 500px; position: relative; z-index: 2; }
+    .hero h1 { font-size: 48px; margin-bottom: 20px; }
+    .hero p { font-size: 16px; margin-bottom: 25px; color: #ddd; }
+
+    .btn { padding: 12px 24px; border: none; cursor: pointer; font-weight: 600; border-radius: 4px; margin-right: 10px; }
+    .btn-play { background: #fff; color: #000; }
+    .btn-info { background: rgba(109,109,110,0.7); color: #fff; }
+
+    /* Rows */
+    .row { margin-top: 40px; padding: 0 40px; }
+    .row h2 { margin-bottom: 15px; }
+
+    .row-posters {
+      display: flex;
+      overflow-x: auto;
+      gap: 10px;
+      padding-bottom: 10px;
+    }
+
+    .row-posters img {
+      width: 200px;
+      border-radius: 6px;
+      transition: transform 0.3s;
+      cursor: pointer;
+    }
+
+    .row-posters img:hover { transform: scale(1.1); }
+    .row-posters::-webkit-scrollbar { display: none; }
+
+    footer { text-align: center; padding: 40px; color: #777; font-size: 14px; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal video {
+      width: 80%;
+      max-width: 900px;
+      border-radius: 10px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 30px;
+      cursor: pointer;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 768px) {
+      .hero { padding: 0 20px; }
+      .hero h1 { font-size: 32px; }
+      .row-posters img { width: 140px; }
+      header { padding: 15px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">NETFLIX</div>
+  <div class="nav-links">
+    <a class="nav-item active" data-page="home">Home</a>
+    <a class="nav-item" data-page="tv">TV Shows</a>
+    <a class="nav-item" data-page="movies">Movies</a>
+    <a class="nav-item" data-page="mylist">My List</a>
+  </div>
+</header>
+
+<main>
+  <section id="home" class="page">
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Unlimited movies, TV shows and more.</h1>
+        <p>Watch anywhere. Cancel anytime.</p>
+        <button class="btn btn-play" onclick="openPlayer()">▶ Play</button>
+        <button class="btn btn-info">More Info</button>
+      </div>
+    </section>
+
+    <section class="row">
+      <h2>Trending Now</h2>
+      <div class="row-posters" id="trending"></div>
+    </section>
+  </section>
+
+  <section id="tv" class="page hidden">
+    <div class="row"><h2>Popular TV Shows</h2><div class="row-posters" id="tvshows"></div></div>
+  </section>
+
+  <section id="movies" class="page hidden">
+    <div class="row"><h2>Popular Movies</h2><div class="row-posters" id="moviesRow"></div></div>
+  </section>
+
+  <section id="mylist" class="page hidden">
+    <div class="row"><h2>My List</h2><div class="row-posters" id="myListRow"></div></div>
+  </section>
+</main>
+
+<footer>
+  <p>Netflix Clone © 2026</p>
+</footer>
+
+<div class="modal" id="playerModal">
+  <span class="close-btn" onclick="closePlayer()">✖</span>
+  <video id="videoPlayer" controls>
+    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+  </video>
+</div>
+
+<script>
+  const trendingImages = [
+    'https://image.tmdb.org/t/p/w500/dDlEmu3EZ0Pgg93K2SVNLCjCSvE.jpg',
+    'https://image.tmdb.org/t/p/w500/1E5baAaEse26fej7uHcjOgEE2t2.jpg',
+    'https://image.tmdb.org/t/p/w500/9Gtg2DzBhmYamXBS1hKAhiwbBKS.jpg'
+  ];
+
+  const tvShowImages = [
+    'https://image.tmdb.org/t/p/w500/7WUHnWGx5OO145IRxPDUkQSh4C7.jpg',
+    'https://image.tmdb.org/t/p/w500/49WJfeN0moxb9IPfGn8AIqMGskD.jpg',
+    'https://image.tmdb.org/t/p/w500/reEMJA1uzscCbkpeRJeTT2bjqUp.jpg'
+  ];
+
+  const movieImages = [
+    'https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg',
+    'https://image.tmdb.org/t/p/w500/9BAjt8nSSms62uOVYn1t3C3dVto.jpg',
+    'https://image.tmdb.org/t/p/w500/wVYREutTvI2tmxr6ujrHT704wGF.jpg'
+  ];
+
+  function populateRow(id, images) {
+    const container = document.getElementById(id);
+    if (!container) return;
+    container.innerHTML = '';
+    images.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.onerror = () => {
+        img.src = 'https://image.tmdb.org/t/p/w500/58PON1OrnBiX6CqEHgeWKVwrCn6.jpg';
+      };
+      img.onclick = () => addToMyList(src);
+      container.appendChild(img);
+    });
+  }
+
+  function addToMyList(src) {
+    const list = document.getElementById('myListRow');
+    const img = document.createElement('img');
+    img.src = src;
+    list.appendChild(img);
+    alert('Added to My List ✅');
+  }
+
+  const navItems = document.querySelectorAll('.nav-item');
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+
+      const page = item.dataset.page;
+      document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+      document.getElementById(page).classList.remove('hidden');
+    });
+  });
+
+  function openPlayer() {
+    document.getElementById('playerModal').style.display = 'flex';
+    document.getElementById('videoPlayer').play();
+  }
+
+  function closePlayer() {
+    const video = document.getElementById('videoPlayer');
+    video.pause();
+    video.currentTime = 0;
+    document.getElementById('playerModal').style.display = 'none';
+  }
+
+  // Populate rows with different content
+  populateRow('trending', trendingImages);
+  populateRow('tvshows', tvShowImages);
+  populateRow('moviesRow', movieImages);
+</script>
+</body>
+</html>
